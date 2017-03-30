@@ -583,7 +583,7 @@ class Etcd3Client(object):
         return self.leasestub.LeaseTimeToLive(ttl_request, self.timeout)
 
     @_handle_errors
-    def lock(self, name, ttl=60):
+    def lock(self, name, ttl=60, **kwargs):
         """
         Create a new lock.
 
@@ -596,7 +596,7 @@ class Etcd3Client(object):
         :returns: new lock
         :rtype: :class:`.Lock`
         """
-        return locks.Lock(name, ttl=ttl, etcd_client=self)
+        return locks.Lock(name, ttl=ttl, etcd_client=self, **kwargs)
 
     @_handle_errors
     def add_member(self, urls):

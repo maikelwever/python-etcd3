@@ -29,12 +29,20 @@ class Lock(object):
     :param ttl: length of time for the lock to live for in seconds. The lock
                 will be released after this time elapses, unless refreshed
     :type ttl: int
+    :param: attempts: number of times to attempt to acquire the lock
+    :type attempts: int
+    :param: retry_backoff_period: time (in seconds) to wait between retrying to acquire lock
+    :type retry_backoff_period: int
     """
 
-    def __init__(self, name, ttl=60,
-                 etcd_client=None):
+    def __init__(self, name, ttl=60, attempts=10,
+                 retry_backoff_period=1, etcd_client=None):
+
         self.name = name
         self.ttl = ttl
+        self.attempts = attempts
+        self.retry_backoff_period = retry_backoff_period
+
         if etcd_client is not None:
             self.etcd_client = etcd_client
 
@@ -45,7 +53,7 @@ class Lock(object):
     def acquire(self):
         """Acquire the lock."""
         success = False
-        attempts = 10
+        attempts = self.attempts
 
         # store uuid as bytes, since it avoids having to decode each time we
         # need to compare
@@ -71,7 +79,7 @@ class Lock(object):
                 ]
             )
             if success is not True:
-                time.sleep(1)
+                time.sleep(self.retry_backoff_period)
 
         return success
 
